@@ -36,22 +36,29 @@ var specialBoxes={
 
 var Pins=[];
 var Infos=[];
+var Dices=[];
 
-const waiting=0;
+var pinStates=[0,0,0,0,0,0];  //states for the dice
+const waiting=0;		
 const moving=1;
 const moveWithPolice=2;
+const rollAgain=3;
 
-var deleteLater=false;
+var remaining=[0,0,0,0,0,0];	//when a player gets more than what he needs to go to the goal
 
-var pinStates=[0,0,0,0,0,0];
+var toiletes=[0,0,0,0,0,0];		//the variable is 0 if the player loses his next turn
 
-var toiletes=[0,0,0,0,0,0];
 
-var pos=[boxes[0],boxes[0],boxes[0],boxes[0],boxes[0],boxes[0]];
-var currentPos=[0,0,0,0,0];
+var currentPos=	[0,0,0,0,0];
+var nextPos =	[0,0,0,0,0,0];
 const numberOfPlayers=3;
 var turn=0;
-var nextPos=[0,0,0,0];
+
+var movementStop=0;
+
+var diceSpeed=0;
+var currentDice=0;
+var valDice=0;
 
 var game=new Phaser.Game(config);
 
@@ -71,8 +78,15 @@ function preload(){
 	this.load.image("info_4","./assets/images/info_4.jpg");
 	this.load.image("info_5","./assets/images/info_5.jpg");
 	this.load.image("info_6","./assets/images/info_6.jpg");
-	this.load.image("info_7","./assets/images/info_7.jpg")
+	this.load.image("info_7","./assets/images/info_7.jpg");
 
+	this.load.image("dice_1" ,"./assets/images/dice_1.png");		//load the dice images
+	this.load.image("dice_2" ,"./assets/images/dice_2.png");
+	this.load.image("dice_3" ,"./assets/images/dice_3.png");
+	this.load.image("dice_4" ,"./assets/images/dice_4.png");
+	this.load.image("dice_5" ,"./assets/images/dice_5.png");
+	this.load.image("dice_6" ,"./assets/images/dice_6.png");
+	this.load.image("dadi" , "./assets/images/rotolare_dadi.png");
 
 }
 
@@ -83,45 +97,161 @@ function create(){
 	// background.on('pointerdown', () => { boxes.push([game.input.mousePointer.x,game.input.mousePointer.y])});
 
 	for(var i=1;i<=numberOfPlayers;i++){	//create all the cups for the number of players
-		const pin=this.add.image(pos[0][0],pos[0][1],"pin_"+(i)).setOrigin(0.5,0.9).setScale(0.5,0.5);
+		const pin=this.add.image(boxes[0][0],boxes[0][1],"pin_"+(i)).setOrigin(0.5,0.9).setScale(0.5,0.5);
 		Pins.push(pin);
 	}
 
-	for(var i=1;i<=7;i++){
+	for(var i=1;i<=7;i++){			//create all the info boxes
 		const info=this.add.image(1280/2,720/2,"info_"+i);
+		info.setInteractive();
+		info.on('pointerdown' , ()=>{info.visible=false; info.setScale(1,1) });
+		info.on('pointerover', ()=> {	info.setScale(1.1,1.1);});
+		info.on('pointerout', ()=> {	info.setScale(1,1);});
 		info.visible=false;
 		Infos.push(info);
 	}
 
-	const helloButton = this.add.text(50, 600, 'Move!', { fill: '#0f0' });		//button to roll the dice
-	helloButton.setInteractive();
-	helloButton.on('pointerdown', ()=> {
-		nextTurn();
-		movePin(turn);		
+	for(var i=1;i<=6;i++){			//create all the dice images
+		const dice=this.add.image(150,400,"dice_"+i);
+		dice.setScale(0.4,0.4);
+		dice.visible=false;
+		dice.depth=1;
+		Dices.push(dice);
+	}
+	Dices[0].visible=true;
 
-	});
- 
+
+	const dadiButton = this.add.image(150, 400, 'dadi').setScale(0.5,0.5);		//button to roll the dice
+	dadiButton.setInteractive();
+	dadiButton.on('pointerdown', ()=> {	movePin(turn);});
+	dadiButton.on('pointerover', ()=> {	dadiButton.setScale(0.6,0.6);});
+	dadiButton.on('pointerout', ()=> {	dadiButton.setScale(0.5,0.5);});
 
 }
 
 function update(time,delta){
+	rollTheDice();
+	movement();
+
+}
+
+function getRandomNumber(){
+	return Math.floor(Math.random() * 6)+1;  
+
+}
+
+function movePin(pinNumber){
+
+	if(diceSpeed<0.4){
+		diceSpeed=40;
+		valDice=getRandomNumber();
+		nextPos[pinNumber]=currentPos[pinNumber]+valDice;
+		if(nextPos[pinNumber]>62){
+			remaining[pinNumber]=nextPos[pinNumber]-62;
+			nextPos[pinNumber]=62;
+		}
+		pinStates[pinNumber]=moving;}
+
+	}
+
+	function distance(x1,y1,x2,y2){
+		return Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2));
+
+	}
+
+	function renderMovement(pinNumber,dirX,dirY){
+
+		var velocity=5;
+
+		if(nextPos[pinNumber]!==currentPos[pinNumber] ){
+			Pins[pinNumber].x+=velocity*dirX;
+			Pins[pinNumber].y+=velocity*dirY;
+
+		}
 
 
-	if(pinStates[turn]===moving){
+	}
 
-		if( distance(Pins[turn].x , Pins[turn].y , boxes[nextPos[turn]][0] , boxes[nextPos[turn]][1]  ) >10){
+	function getDirection(x1,y1,x2,y2){
+		var _distance=distance(x1,y1,x2,y2);
+		var vector=[(x2-x1)/_distance,(y2-y1)/_distance];
+		return vector;
 
-			//Move to the next box
-			if(distance(Pins[turn].x , Pins[turn].y , boxes[currentPos[turn]+1][0] , boxes[currentPos[turn]+1][1]  ) <10){
-				currentPos[turn]+=1;
+	}
+
+	function nextTurn(){
+		if (turn===numberOfPlayers-1){
+			turn=0;
+		}
+		else turn++;
+
+		if(toiletes[turn]===1){
+			toiletes[turn]=0;
+			nextTurn();
+		}
+	}
+
+	function rollTheDice(delta){
+
+		if(diceSpeed>0){
+			diceSpeed*=0.95;
+
+			var aaa=Math.random();
+
+			if(diceSpeed>5){
+				if(Math.random()>0.9){
+
+					Dices[currentDice].visible=false;
+					currentDice = currentDice<5 ? currentDice+1: 0;
+					Dices[currentDice].visible=true;
+				}
+			}
+			else{
+				Dices[currentDice].visible=false;
+				currentDice=valDice-1;
+				Dices[currentDice].visible=true;
 			}
 
-			var direction= getDirection(Pins[turn].x , Pins[turn].y , boxes[currentPos[turn]+1][0] , boxes[currentPos[turn]+1][1] );
-			renderMovement(turn,direction[0],direction[1]);
+			for(var i=0;i<6;i++){
+				Dices[i].angle+=diceSpeed;
+			}
+
+			if(diceSpeed<0){ 
+				diceSpeed=0;			
+			}
+		}
+	}
+
+	function movement(){
+		if(pinStates[turn]===moving && diceSpeed<2){
+
+			if( distance(Pins[turn].x , Pins[turn].y , boxes[nextPos[turn]][0] , boxes[nextPos[turn]][1]  ) >10){
+
+				if(remaining[turn]!==-1){
+				//Move to the next box
+				if(distance(Pins[turn].x , Pins[turn].y , boxes[currentPos[turn]+1][0] , boxes[currentPos[turn]+1][1]  ) <10){
+					currentPos[turn]+=1;
+					movementStop=10;
+				}
+
+				var direction= getDirection(Pins[turn].x , Pins[turn].y , boxes[currentPos[turn]+1][0] , boxes[currentPos[turn]+1][1] );
+				
+			}
+			else{
+				//move to the previous box
+				if(distance(Pins[turn].x , Pins[turn].y , boxes[currentPos[turn]-1][0] , boxes[currentPos[turn]-1][1]  ) <10){
+					currentPos[turn]-=1;
+					movementStop=10;
+				}
+				var direction= getDirection(Pins[turn].x , Pins[turn].y , boxes[currentPos[turn]-1][0] , boxes[currentPos[turn]-1][1] );
+			}
+			if(stopPins())
+				renderMovement(turn,direction[0],direction[1]);
 		}
 		else{ //reaches the destination
 
 			currentPos[turn]=nextPos[turn];
+			if(remaining[turn]===-1) remaining[turn]=0;
 
 			var specialBox=specialBoxes["B"+(currentPos[turn]+1)];		//If the player gets to a special box
 			if(specialBox!==undefined){
@@ -132,6 +262,7 @@ function update(time,delta){
 				}
 				else if(specialBox.type==="dice"){
 					console.log("player " + turn + " roll the dice again");
+					pinStates[turn]=rollAgain;
 					//roll the dice again, nothing happens
 				}
 				else if (specialBox.type==="toilet"){
@@ -145,9 +276,20 @@ function update(time,delta){
 					pinStates[turn]=waiting;
 					nextTurn();
 				}
+				else if(specialBox.type==="win"){
+					if(remaining[turn]>0){
+						nextPos[turn]-=remaining[turn];
+						remaining[turn]=-1;
+					}
+					else if(remaining[turn]==0){
+						// WIIIIN
+						console.log("the winner is!");
+					}
+				}
 
 			}
 			else{
+
 				pinStates[turn]=waiting;
 				nextTurn();
 			}	
@@ -159,54 +301,17 @@ function update(time,delta){
 			renderMovement(turn,direction[0],direction[1]);
 		}
 		else{
+			currentPos[turn]=nextPos[turn];
 			pinStates[turn]=waiting;
 			nextTurn();
 		}
 	}
 }
 
-function getRandomNumber(){
-	return Math.floor(Math.random() * 6)+1;  
-
-}
-
-function movePin(pinNumber){
-
-	nextPos[pinNumber]=currentPos[pinNumber]+getRandomNumber();
-	pinStates[pinNumber]=moving;
-
-
-}
-
-function distance(x1,y1,x2,y2){
-	return Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2));
-
-}
-
-function renderMovement(pinNumber,dirX,dirY){
-
-	var velocity=5;
-
-
-	if(nextPos[pinNumber]!==currentPos[pinNumber] ){
-		Pins[pinNumber].x+=velocity*dirX;
-		Pins[pinNumber].y+=velocity*dirY;
-
+function stopPins(){
+	if(movementStop>0){
+		movementStop--;
+		return false;
 	}
-
-
-}
-
-function getDirection(x1,y1,x2,y2){
-	var _distance=distance(x1,y1,x2,y2);
-	var vector=[(x2-x1)/_distance,(y2-y1)/_distance];
-	return vector;
-
-}
-
-function nextTurn(){
-	if (turn===numberOfPlayers-1){
-		turn=0;
-	}
-	else turn++;
+	return true;
 }
