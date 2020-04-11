@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Gioco dell'uva</title>
+	<title>Gioco dell'uva - Menu</title>
 </head>
 <body>
 
-
-<div id="menu">
-	numero di giocatori: <input type="number" name="numberPlayers" value="2" id="inputNumberOfPlayers"  min="2" max="6">
+<div>
+	<input type="number" name="numberPlayers" value="2" id="inputNumberOfPlayers"  min="2" max="6">
 
 
 	<div class="namesContainer">
@@ -23,21 +20,12 @@
 	</div>
 
 
-	<button onclick="startGame()">Giocare</button>
+	<button onclick="goToPage()">Giocare</button>
 
 </div>
 
 
-
-	<div id="container">
-		
-
-
-
-		<script type="text/javascript" src="./node_modules/phaser/dist/phaser.js"></script>
-		<script type="text/javascript" src="./src/mainScene.js"></script>
-		<script type="text/javascript" src="./src/init.js"></script>
-	</div>
+<script type="text/javascript" src="./src/menu.js"></script>
 
 </body>
 </html>
