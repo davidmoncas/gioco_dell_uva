@@ -52,8 +52,7 @@ function showNames(){
 	}
 
 	numberOfPlayers=parseInt(inputNumberPlayers.value);
-	console.log(numberOfPlayers);
-	console.log(inputNumberPlayers.value + "  puta vida");
+
 }
 
 function GoToMenu(){
