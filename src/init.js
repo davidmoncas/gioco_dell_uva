@@ -2,6 +2,9 @@
 //------------------------------------------ M E N U -----------------------------------
 //------------------------------------------------------------------------------------------------------
 
+
+var mainMenu = document.getElementById("mainMenu");
+
 var inputNumberPlayers=document.getElementById("inputNumberOfPlayers");
 
 var N1=document.getElementById("N1");
@@ -31,8 +34,16 @@ showNames();
 
 inputNumberPlayers.addEventListener('change', (event)=>{showNames()})
 
+
+function openNumberPlayers(){
+	mainMenu.style.display = 'none';
+	menu.style.display = 'block'
+}
+
+
 function startGame(){
 	menu.style.display = 'none';
+	names=[N1.value,N2.value,N3.value,N4.value,N5.value,N6.value]
 	initGame();
 	
 }
@@ -107,7 +118,7 @@ var remaining=[0,0,0,0,0,0];	//when a player gets more than what he needs to go 
 var toiletes=[0,0,0,0,0,0];		//the variable is 0 if the player loses his next turn
 
 
-var currentPos=	[0,0,0,0,0];
+var currentPos=	[0,0,0,0,0,0];
 var nextPos =	[0,0,0,0,0,0];
 
 var turn=0;
@@ -117,6 +128,7 @@ var movementStop=0;
 var diceSpeed=0;
 var currentDice=0;
 var valDice=0;
+var canRoll=true;
 
 //sounds
 var diceSound;
@@ -127,9 +139,16 @@ var rollAgainSound;
 var toiletSound;
 var winSound;
 
-//var game=new Phaser.Game(config);
+//turn
+var textTurn="";
+var cupTurn=[];
 
+//buttons
+var buttonPlayAgain;
+var buttonMenu;
 
+var buttonPlayAgain_2;
+var buttonMenu_2;
 
 function getRandomNumber(){
 	return Math.floor(Math.random() * 6)+1;  
@@ -138,8 +157,9 @@ function getRandomNumber(){
 
 function movePin(pinNumber){
 
-	diceSound.play();
-	if(diceSpeed<0.4){
+	if(diceSpeed<0.01 && canRoll){
+		closeAllInfos();	
+		diceSound.play();
 		diceSpeed=40;
 		valDice=getRandomNumber();
 		nextPos[pinNumber]=currentPos[pinNumber]+valDice;
@@ -147,87 +167,91 @@ function movePin(pinNumber){
 			remaining[pinNumber]=nextPos[pinNumber]-62;
 			nextPos[pinNumber]=62;
 		}
-		pinStates[pinNumber]=moving;}
+		pinStates[pinNumber]=moving;
+	}
+	
+}
 
+function distance(x1,y1,x2,y2){
+	return Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2));
+
+}
+
+function renderMovement(pinNumber,dirX,dirY){
+
+	var velocity=5;
+
+	if(nextPos[pinNumber]!==currentPos[pinNumber] ){
+		Pins[pinNumber].x+=velocity*dirX;
+		Pins[pinNumber].y+=velocity*dirY;
+
+		namesTexts[pinNumber].x+=velocity*dirX;
+		namesTexts[pinNumber].y+=velocity*dirY;
 	}
 
-	function distance(x1,y1,x2,y2){
-		return Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2));
 
+}
+
+function getDirection(x1,y1,x2,y2){
+	var _distance=distance(x1,y1,x2,y2);
+	var vector=[(x2-x1)/_distance,(y2-y1)/_distance];
+	return vector;
+
+}
+
+function nextTurn(){
+	cupTurn[turn].setVisible(false);
+	if (turn===numberOfPlayers-1){
+		turn=0;
 	}
+	else turn++;
 
-	function renderMovement(pinNumber,dirX,dirY){
-
-		var velocity=5;
-
-		if(nextPos[pinNumber]!==currentPos[pinNumber] ){
-			Pins[pinNumber].x+=velocity*dirX;
-			Pins[pinNumber].y+=velocity*dirY;
-
-			namesTexts[pinNumber].x+=velocity*dirX;
-			namesTexts[pinNumber].y+=velocity*dirY;
-		}
-
-
+	if(toiletes[turn]===1){
+		toiletes[turn]=0;
+		nextTurn();
 	}
+	cupTurn[turn].setVisible(true);
+	textTurn.text=names[turn];
+}
 
-	function getDirection(x1,y1,x2,y2){
-		var _distance=distance(x1,y1,x2,y2);
-		var vector=[(x2-x1)/_distance,(y2-y1)/_distance];
-		return vector;
+function rollTheDice(delta){
 
-	}
+	if(diceSpeed>0){
+		diceSpeed*=0.95;
 
-	function nextTurn(){
-		if (turn===numberOfPlayers-1){
-			turn=0;
-		}
-		else turn++;
+		var aaa=Math.random();
 
-		if(toiletes[turn]===1){
-			toiletes[turn]=0;
-			nextTurn();
-		}
-	}
+		if(diceSpeed>5){
+			if(Math.random()>0.9){
 
-	function rollTheDice(delta){
-
-		if(diceSpeed>0){
-			diceSpeed*=0.95;
-
-			var aaa=Math.random();
-
-			if(diceSpeed>5){
-				if(Math.random()>0.9){
-
-					Dices[currentDice].visible=false;
-					currentDice = currentDice<5 ? currentDice+1: 0;
-					Dices[currentDice].visible=true;
-				}
-			}
-			else{
 				Dices[currentDice].visible=false;
-				currentDice=valDice-1;
+				currentDice = currentDice<5 ? currentDice+1: 0;
 				Dices[currentDice].visible=true;
 			}
+		}
+		else{
+			Dices[currentDice].visible=false;
+			currentDice=valDice-1;
+			Dices[currentDice].visible=true;
+		}
 
-			for(var i=0;i<6;i++){
-				Dices[i].angle+=diceSpeed;
-			}
+		for(var i=0;i<6;i++){
+			Dices[i].angle+=diceSpeed;
+		}
 
-			if(diceSpeed<0){ 
-				diceSpeed=0;			
-			}
+		if(diceSpeed<0){ 
+			diceSpeed=0;			
 		}
 	}
+}
 
-	function movement(){
-		if(pinStates[turn]===moving && diceSpeed<2){
+function movement(){
+	if(pinStates[turn]===moving && diceSpeed<2){
 
-			if( distance(Pins[turn].x , Pins[turn].y , boxes[nextPos[turn]][0] , boxes[nextPos[turn]][1]  ) >10){
+		if( distance(Pins[turn].x , Pins[turn].y , boxes[nextPos[turn]][0] , boxes[nextPos[turn]][1]  ) >10){
 
 
-				if(remaining[turn]!==-1){
+			if(remaining[turn]!==-1){
 				//Move to the next box
 				if(distance(Pins[turn].x , Pins[turn].y , boxes[currentPos[turn]+1][0] , boxes[currentPos[turn]+1][1]  ) <10){
 					pawnSound.play();
@@ -289,13 +313,15 @@ function movePin(pinNumber){
 					}
 					else if(remaining[turn]==0){
 						winSound.play();
-						console.log("the winner is!");
+						showVictory();
+						nextTurn();
 					}
 				}
 
 			}
 			else{
 				pawnSound.play();
+				checkOverlay();
 				pinStates[turn]=waiting;
 				nextTurn();
 			}	
@@ -314,6 +340,18 @@ function movePin(pinNumber){
 	}
 }
 
+
+function checkOverlay(){
+	for (var i=0;i<numberOfPlayers;i++){
+		if (currentPos[turn]===currentPos[i] && i!== turn){
+			cupsSound.play();
+			Infos[7].visible=true;
+			return true;
+		}
+	}
+	return false;
+}
+
 function stopPins(){
 	if(movementStop>0){
 		movementStop--;
@@ -328,14 +366,47 @@ const config={
 	height: 720,
 	parent : "container",
 	type: Phaser.AUTO,
-	// scene: {
-	// 	preload: preload,
-	// 	create: create,
-	// 	update: update
-	// }
 	scene: [mainScene]
+}
+
+function showVictory(){
+	Infos[8].visible=true;
+	buttonMenu.visible=true;
+	buttonPlayAgain.visible=true;
+	console.log("the winner is " + names[turn]);
+	canRoll=false;
 }
 
 function initGame(){
 	var Game=new Phaser.Game(config);
+}
+
+function goToMenu(){
+	location.reload();
+}
+
+
+function closeAllInfos(){
+	for(var i=0;i<Infos.length;i++){
+		Infos[i].visible=false;
+	}
+}
+
+function restart(){
+	currentPos=[0,0,0,0,0,0];
+	nextPos=[0,0,0,0,0,0];
+	var pinStates=[0,0,0,0,0,0]; 
+	turn=0;
+	canRoll=true;
+
+	for (var i=0;i<numberOfPlayers;i++){
+		Pins[i].x=boxes[0][0];
+		Pins[i].y=boxes[0][1];
+		namesTexts[i].x=boxes[0][0];
+		namesTexts[i].y=boxes[0][1];
+	}
+	closeAllInfos();
+	buttonPlayAgain.visible=false;
+	buttonMenu.visible=false;
+
 }
