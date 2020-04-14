@@ -3,6 +3,7 @@ body , html{
 	width: 100%;
 	margin:0;
 	padding: 0;
+	height: 100%;
 }
 
 .title{
@@ -26,10 +27,13 @@ body , html{
   display: inline-block;
   font-size: 16px;
   border-radius: 10px;
+  cursor: pointer;
+  font-size: 1.3rem;
 }
 
 .button:hover{
 	 background-color: #367c39;
+	 font-size:1.5rem;
 }
 
 .menu{
@@ -63,4 +67,32 @@ body , html{
 	font-size: 25px;
 	text-align: center;
 	margin-left: 10px;
+}
+
+#mainMenu{
+	background-image: url("assets/images/intro.jpg");
+	width: 100%;
+	height: 100%;
+	background-repeat: no-repeat;
+  	background-attachment: fixed;
+  	background-position: center; 
+  	background-size: contain;
+}
+
+.buttonContainer_main{
+	text-align: center;
+	position: relative;
+	top:68%;
+
+}
+
+.buttonMain{
+	background-color: #ffa400;
+	color: white;
+	font-weight: bold;
+	font-size: 2rem;
+}
+.buttonMain:hover{
+	background-color: #cc9633;
+	font-size: 2.1rem;
 }

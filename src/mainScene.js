@@ -62,6 +62,7 @@ class mainScene extends Phaser.Scene{
 			const pin=this.add.image(boxes[0][0],boxes[0][1],"pin_"+(i)).setOrigin(0.5 + (Math.random()-0.5)*0.1,0.9+ (Math.random()-0.5)*0.1).setScale(0.5,0.5);
 			const nameText=this.add.text(boxes[0][0],boxes[0][1], " " + names[i-1] + " ");
 			nameText.setOrigin(0.5,0.5);
+			nameText.depth=1;
 			nameText.setBackgroundColor("#ffffff");
 			nameText.setColor('#010101');
 			Pins.push(pin);
@@ -154,13 +155,14 @@ class mainScene extends Phaser.Scene{
 		var text = this.add.bitmapText(150,180,'Antenna',"È il turno di",24).setOrigin(0.5,0.5);
 		text.tint='#010101';
 
-		//var prueba = this.add.bitmapText(0,0, 'Antenna', 'aaaaaaaaaaaaaaaa', 64); 
+		overlayNames();
 
 	}
 
 	update(time,delta){
 		rollTheDice();
 		movement();
+		overlayNames();
 
 	}
 

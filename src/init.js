@@ -288,13 +288,11 @@ function movement(){
 				}
 				else if(specialBox.type==="dice"){
 					rollAgainSound.play();
-					console.log("player " + turn + " roll the dice again");
 					pinStates[turn]=rollAgain;
-					//roll the dice again, nothing happens
 				}
 				else if (specialBox.type==="toilet"){
+					checkOverlay();
 					toiletSound.play();
-					console.log('Player ' + turn + " loses the next turn");
 					toiletes[turn]=1;
 					pinStates[turn]=waiting;
 					nextTurn();
@@ -408,5 +406,23 @@ function restart(){
 	closeAllInfos();
 	buttonPlayAgain.visible=false;
 	buttonMenu.visible=false;
+
+}
+
+function overlayNames(){
+	//return all the names to their respective positions
+	for (var i=0;i<numberOfPlayers;i++){
+		namesTexts[i].setOrigin(0.5,0);
+	}
+	for (var i=0;i<numberOfPlayers-1;i++){
+		var offset=1.1;
+		for (var j=i+1; j< numberOfPlayers;j++){
+			if(currentPos[i]===currentPos[j]){
+				namesTexts[i].setOrigin(0.5,0+offset);
+				offset+=1.1;
+			}
+		}
+	}
+
 
 }
