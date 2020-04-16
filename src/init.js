@@ -27,6 +27,8 @@ var containers=[containerN1,containerN2,containerN3,containerN4,containerN5,cont
 var gameContainer=document.getElementById("container");
 var menuContainer=document.getElementById("menu");
 
+var rulesImage;
+var button_rules;
 
 var numberOfPlayers=2;
 
@@ -158,7 +160,8 @@ function getRandomNumber(){
 function movePin(pinNumber){
 
 	if(diceSpeed<0.01 && canRoll){
-		closeAllInfos();	
+		closeAllInfos();
+		closeRules();	
 		diceSound.play();
 		diceSpeed=40;
 		valDice=getRandomNumber();
@@ -423,6 +426,12 @@ function overlayNames(){
 			}
 		}
 	}
+}
 
+function showRules(){
+	rulesImage.setVisible(true);
+}
 
+function closeRules(){
+	rulesImage.setVisible(false);
 }

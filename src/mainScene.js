@@ -30,6 +30,7 @@ class mainScene extends Phaser.Scene{
 		this.load.image("button_menu" , "./assets/images/ritorna_menu.png");
 		this.load.image("button_play_again" , "./assets/images/gioca_ancora.png");
 		this.load.image("button_restart" , "./assets/images/restart.png");
+		this.load.image("button_rules" , "./assets/images/regole.png");
 
 		this.load.image("dice_1" ,"./assets/images/dice_1.png");		//load the dice images
 		this.load.image("dice_2" ,"./assets/images/dice_2.png");
@@ -47,6 +48,7 @@ class mainScene extends Phaser.Scene{
 		this.load.audio("toilet" , "./assets/sounds/toilet.mp3");
 		this.load.audio("win" , "./assets/sounds/win.mp3");
 
+		this.load.image("rules" , "./assets/images/regole.jpg");
 
 		this.load.bitmapFont('Antenna', 'assets/fonts/antenna.png', 'assets/fonts/antenna.xml');		//load the font
 
@@ -112,6 +114,19 @@ class mainScene extends Phaser.Scene{
 		buttonPlayAgain_2.on('pointerover', ()=> {	buttonPlayAgain_2.setScale(1);});
 		buttonPlayAgain_2.on('pointerout', ()=> {	buttonPlayAgain_2.setScale(0.9);});
 
+
+		button_rules=this.add.image(1150,60,"button_rules").setScale(1);
+		button_rules.setInteractive();
+		button_rules.on('pointerdown' , showRules);
+		button_rules.on('pointerover', ()=> {	button_rules.setScale(1.1);});
+		button_rules.on('pointerout', ()=> {	button_rules.setScale(1);});
+
+		rulesImage=this.add.image(730,365,"rules");
+		rulesImage.setInteractive();
+		rulesImage.visible=false;	
+		rulesImage.on('pointerdown' , closeRules);
+		rulesImage.on('pointerover', ()=> {	rulesImage.setScale(1.01);});
+		rulesImage.on('pointerout', ()=> {	rulesImage.setScale(1);});
 
 
 		buttonMenu_2=this.add.image(150,655,"button_menu").setScale(0.9);
